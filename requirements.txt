@@ -1,0 +1,5 @@
+behave
+playwright
+python-dotenv
+from_root
+allure-behave

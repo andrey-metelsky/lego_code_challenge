@@ -1,0 +1,12 @@
+{
+  "en-US": {
+    "invalid_credentials_error": "Epic sadface: Username and password do not match any user in this service",
+    "locked_user_error": "Epic sadface: Sorry, this user has been locked out.",
+    "order_confirmation_message": "THANK YOU FOR YOUR ORDER"
+  },
+  "eu-ES": {
+    "invalid_credentials_error": "Cara triste épica: el nombre de usuario y la contraseña no coinciden con ningún usuario de este servicio",
+    "locked_user_error": "Cara triste épica: Lo sentimos, este usuario ha sido bloqueado.",
+    "order_confirmation_message": "GRACIAS POR SU PEDIDO"
+  }
+}
