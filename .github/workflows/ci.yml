@@ -1,0 +1,90 @@
+name: Sauce Demo CI
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # Scheduled to run daily at 11 PM
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+    inputs:
+        LOCALE:
+          description: 'Select the locale for the tests'
+          required: false
+          default: 'en-US'
+          type: choice
+          options:
+            - en-US
+            - eu-ES
+        FEATURE:
+            description: 'Select the feature to run'
+            required: false
+            default: 'all'
+            type: choice
+            options:
+              - all
+              - login
+              - cart
+              - checkout
+         
+
+jobs:
+  autotests:
+    name: Run tests and generate Allure Report
+    runs-on: ubuntu-latest
+    env:
+      LOCALE: ${{ github.event.inputs.LOCALE }}
+      STANDARD_USER: ${{ vars.STANDARD_USER}}
+      LOCKED_USER: ${{ vars.LOCKED_USER}}
+      PROBLEM_USER: ${{ vars.PROBLEM_USER}}
+      PERFORMANCE_GLITCH_USER: ${{ vars.performance_glitch_user}}
+      PASSWORD: ${{ vars.PASSWORD}}
+      BASE_URL: ${{ vars.BASE_URL}}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          playwright install
+
+      - name: Run Test
+        if: always()
+        run: |
+          if [ -n "$RUN_TAGS" ]; then
+            behave -f allure_behave.formatter:AllureFormatter -o allure-results --tags=@"FEATURE" ./features
+          else
+            behave -f allure_behave.formatter:AllureFormatter -o allure-results ./features
+          fi
+        continue-on-error: true
+
+      - name: Get Allure history
+        uses: actions/checkout@v3
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Allure Report action
+        uses: simple-elf/allure-report-action@v1.7
+        if: always()
+        with:
+          allure_results: allure-results
+          allure_history: allure-history
+
+      - name: Deploy report to Github Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v2
+        env:
+          PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISH_BRANCH: gh-pages
+          PUBLISH_DIR: allure-history
